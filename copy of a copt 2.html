@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Copy of a copy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eceff4; --surface:#f8f9fc; --ink:#111827; --muted:#576074; --line:#cdd3df;
+  --accent:#2c4bff; --accent-ink:#ffffff; --frame:#101521; --danger:#b3261e;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e131c; --surface:#151b27; --ink:#e8ecf4; --muted:#93a0b8; --line:#2a3345;
+    --accent:#8aa0ff; --accent-ink:#0b1020; --frame:#05070b; --danger:#ff8a80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e131c; --surface:#151b27; --ink:#e8ecf4; --muted:#93a0b8; --line:#2a3345;
+  --accent:#8aa0ff; --accent-ink:#0b1020; --frame:#05070b; --danger:#ff8a80;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:980px;margin:0 auto;padding:36px 20px 72px}
+h1{font-family:var(--display);font-weight:700;letter-spacing:-.025em;line-height:1.02;font-size:clamp(2.1rem,6.4vw,3.8rem);margin:0 0 14px}
+h1 .g1{opacity:.7;filter:blur(.6px)}
+h1 .g2{opacity:.5;filter:blur(1.3px)}
+.lede{font-size:1.1rem;color:var(--muted);max-width:58ch;margin:0 0 28px}
+
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;
+  min-height:260px;padding:28px;border:2px dashed var(--line);border-radius:14px;background:var(--surface);cursor:pointer;
+  transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent)}
+.drop.over{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.drop svg{width:44px;height:44px;color:var(--accent)}
+.drop strong{font-family:var(--display);font-size:1.35rem;font-weight:600}
+.drop span{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.link{background:none;border:0;padding:6px 2px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.msg{min-height:1.4em;margin:10px 2px 0;color:var(--danger);font-size:.95rem}
+
+.btn{border:1px solid var(--line);background:var(--surface);padding:10px 18px;border-radius:999px;font-weight:600;transition:border-color .15s,transform .05s}
+.btn:hover{border-color:var(--ink)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.small{padding:6px 13px;font-size:.9rem}
+
+.config{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:720px){.config{grid-template-columns:1fr}}
+.preview{background:var(--frame);border-radius:12px;padding:10px}
+.preview img{display:block;width:100%;height:auto;border-radius:6px}
+.preview .row{margin-top:10px;justify-content:space-between}
+.preview .link{color:#b9c6ff}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.field{margin:0 0 22px;border:0;padding:0;min-width:0}
+.field legend,.field .lab{font-family:var(--display);font-weight:600;font-size:1.1rem;padding:0;margin:0 0 4px}
+.hint{color:var(--muted);font-size:.93rem;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rangeRow{display:flex;gap:14px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:0;height:28px}
+.count{font-family:var(--display);font-weight:700;font-size:1.5rem;min-width:3ch;text-align:right}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg label{display:block;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seg label:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:2px}
+.seg b{display:block;font-weight:600}
+.seg small{color:var(--muted)}
+.estimate{color:var(--muted);font-size:.93rem;margin:0 0 18px}
+
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:var(--frame);padding:14px;border-radius:14px}
+.stage figure{margin:0;min-width:0}
+.frame{position:relative;border-radius:6px;overflow:hidden;background:#000;margin:0 auto}
+.frame img{display:block;width:100%;height:100%;object-fit:fill}
+.stage figcaption{color:#d3dbec;font-size:.95rem;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.stage figcaption .btn{background:transparent;color:#d3dbec;border-color:#3a455c}
+.stage figcaption .btn:hover{border-color:#d3dbec}
+.busy{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:10px;
+  background:linear-gradient(to top,rgba(5,7,11,.7),rgba(5,7,11,.1) 50%,rgba(5,7,11,0))}
+.busy span{color:#fff;font-size:.9rem;font-weight:600;text-align:center}
+.busy::before{content:"";position:absolute;left:0;right:0;height:3px;background:var(--accent);box-shadow:0 0 16px 2px var(--accent);animation:scan 1.6s ease-in-out infinite alternate}
+@keyframes scan{from{top:0}to{top:calc(100% - 3px)}}
+
+.status{margin:16px 2px 8px;font-size:1.02rem;min-height:1.6em}
+.status.err{color:var(--danger);font-weight:600}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+
+.scrub{display:flex;gap:14px;align-items:center;margin:0 0 20px;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.scrub .where{font-variant-numeric:tabular-nums;color:var(--muted);min-width:9ch;text-align:right;font-size:.95rem}
+
+.sheet{display:grid;grid-template-columns:repeat(var(--cols,6),minmax(0,1fr));gap:6px;background:var(--frame);padding:10px;border-radius:12px}
+.cell{position:relative;padding:0;border:1px dashed #36405a;background:transparent;border-radius:4px;overflow:hidden;aspect-ratio:var(--ar,1);color:#7d8aa6}
+.cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.cell .n{position:absolute;left:3px;top:2px;font-size:.68rem;font-weight:600;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;z-index:1}
+.cell:not(.on) .n{color:#7d8aa6;text-shadow:none}
+.cell.on{border:1px solid transparent}
+.cell.sel{outline:2px solid var(--accent);outline-offset:1px;z-index:2}
+.cell.work{border-color:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+.sheetNote{color:var(--muted);font-size:.9rem;margin:8px 2px 0}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.95rem;z-index:10;max-width:90vw}
+
+@media (max-width:560px){
+  .stage{padding:8px;gap:8px}
+  .panel{padding:16px}
+  .seg{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .busy::before,.cell.work{animation:none}
+  .bar i{transition:none}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1><span>A copy</span> <span class="g1">of a copy</span> <span class="g2">of a copy</span></h1>
+    <p class="lede">Drop in a picture. Each copy is rebuilt from the one before it: softened, recolored, nudged and smudged, like a photocopy of a photocopy. Watch what survives.</p>
+  </header>
+
+  <!-- 1. pick a picture -->
+  <section id="viewDrop" aria-label="Choose a picture">
+    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose a picture. You can also drop or paste one.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>
+      <strong>Drop a picture here</strong>
+      <span>or click to choose a file, or paste one from your clipboard</span>
+      <span>PNG, JPG, WebP or GIF</span>
+    </div>
+    <input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+    <div class="row" style="margin-top:12px">
+      <span style="color:var(--muted)">No picture handy?</span>
+      <button id="sampleBtn" class="link" type="button">Use a sample sunset</button>
+    </div>
+    <p id="dropMsg" class="msg" role="alert"></p>
+  </section>
+
+  <!-- 2. settings -->
+  <section id="viewConfig" hidden aria-label="Settings">
+    <div class="config">
+      <div class="preview">
+        <img id="cfgImg" alt="The picture you chose">
+        <div class="row">
+          <button id="changeBtn" class="link" type="button">Change picture</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="field">
+          <p class="lab" id="countLab">How many copies?</p>
+          <p class="hint">Each copy is made from the last one, so changes pile up.</p>
+          <div class="chips" id="chips" role="group" aria-labelledby="countLab"></div>
+          <div class="rangeRow">
+            <input id="count" type="range" min="1" max="100" value="10" aria-labelledby="countLab">
+            <output id="countOut" class="count" for="count">10</output>
+          </div>
+        </div>
+        <fieldset class="field">
+          <legend>How fast does it fall apart?</legend>
+          <div class="seg">
+            <label><input type="radio" name="drift" value="1" checked><b>Gentle</b><small>A slow melt</small></label>
+            <label><input type="radio" name="drift" value="2.4"><b>Wild</b><small>Falls apart quickly</small></label>
+          </div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Pace</legend>
+          <div class="seg">
+            <label><input type="radio" name="pace" value="watch" checked><b>Watch it happen</b><small>One copy at a time</small></label>
+            <label><input type="radio" name="pace" value="instant"><b>Instant</b><small>Skip straight to the end</small></label>
+          </div>
+        </fieldset>
+        <p id="estimate" class="estimate"></p>
+        <button id="startBtn" class="btn primary" type="button">Start copying</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. the game -->
+  <section id="viewRun" hidden aria-label="Copy progress">
+    <div class="stage">
+      <figure>
+        <div class="frame" id="frameA"><img id="imgOrig" alt="The original picture"></div>
+        <figcaption>Original</figcaption>
+      </figure>
+      <figure>
+        <div class="frame" id="frameB">
+          <img id="imgCur" alt="The selected copy">
+          <div class="busy" id="busy" hidden><span id="busyText"></span></div>
+        </div>
+        <figcaption>
+          <span id="capCur">Copy 0</span>
+          <span class="row" id="saveRow" hidden>
+            <button class="btn small" id="savePng" type="button">Save PNG</button>
+          </span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+    <div class="controls" id="controls"></div>
+
+    <div class="scrub" id="scrub" hidden>
+      <button id="playBtn" class="btn small" type="button">Play</button>
+      <input id="scrubber" type="range" min="0" max="0" value="0" aria-label="Scrub through copies">
+      <span id="where" class="where"></span>
+    </div>
+
+    <div class="sheet" id="sheet" aria-label="All copies"></div>
+    <p class="sheetNote">Click any frame to compare it with the original.</p>
+  </section>
+</main>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var MAX_SIDE = 512;
+
+var S = {
+  w:0, h:0, gens:[], target:10, drift:1, pace:"watch",
+  running:false, paused:null, runId:0, stopReq:false,
+  sel:0, follow:true, busyGen:null, tint:[0,0,0],
+  view:"drop", sheetFor:0, playTimer:null,
+  api:{ downloads:null }
+};
+
+/* ---------- optional: saving files (only inside Claude) ---------- */
+async function init(){
+  try{
+    if(window.claude) S.api.downloads = await window.claude.use("downloads");
+  }catch(e){ S.api.downloads = null; }
+  render();
+}
+
+/* ---------- loading a picture ---------- */
+function readFile(file){
+  return new Promise(function(res,rej){ var r = new FileReader(); r.onload = function(){res(r.result);}; r.onerror = rej; r.readAsDataURL(file); });
+}
+function loadImg(url){
+  return new Promise(function(res,rej){ var i = new Image(); i.onload = function(){res(i);}; i.onerror = rej; i.src = url; });
+}
+function toBlob(c){ return new Promise(function(r){ c.toBlob(r,"image/png"); }); }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+async function handleFile(file){
+  $("dropMsg").textContent = "";
+  if(!file || !/^image\//.test(file.type)){ $("dropMsg").textContent = "That file isn't a picture. Try a PNG, JPG, WebP or GIF."; return; }
+  try{
+    var img = await loadImg(await readFile(file));
+    await ingest(img, img.naturalWidth || MAX_SIDE, img.naturalHeight || MAX_SIDE);
+  }catch(e){
+    $("dropMsg").textContent = "Couldn't open that picture. Try a different file.";
+  }
+}
+async function ingest(src, sw, sh){
+  var k = MAX_SIDE / Math.max(sw, sh);
+  var w = Math.max(16, Math.round(sw*k)), h = Math.max(16, Math.round(sh*k));
+  var c = document.createElement("canvas"); c.width = w; c.height = h;
+  var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0,0,w,h); x.drawImage(src,0,0,w,h);
+  var blob = await toBlob(c);
+  if(!blob) throw new Error("encode failed");
+  stopRun();
+  S.w = w; S.h = h;
+  S.gens = [{ blob:blob, url:c.toDataURL("image/jpeg",0.9) }];
+  S.sel = 0; S.follow = true; S.paused = null; S.tint = [0,0,0]; S.sheetFor = 0;
+  setView("config");
+}
+function drawSample(){
+  var w = 512, h = 384, c = document.createElement("canvas"); c.width = w; c.height = h;
+  var x = c.getContext("2d");
+  var g = x.createLinearGradient(0,0,0,h*0.72);
+  g.addColorStop(0,"#2b3a8c"); g.addColorStop(.55,"#f2708a"); g.addColorStop(1,"#ffc46b");
+  x.fillStyle = g; x.fillRect(0,0,w,h);
+  x.fillStyle = "#fff3c4"; x.beginPath(); x.arc(360,205,48,0,Math.PI*2); x.fill();
+  function hill(color, base, amp, ph){
+    x.fillStyle = color; x.beginPath(); x.moveTo(0,h);
+    for(var i=0;i<=w;i+=8){ x.lineTo(i, base + Math.sin(i/90+ph)*amp); }
+    x.lineTo(w,h); x.closePath(); x.fill();
+  }
+  hill("#6a4a9c",235,22,0.5); hill("#3d2f6b",275,20,2); hill("#1d1a3b",320,16,4);
+  x.fillStyle = "#2a1f4d"; x.fillRect(110,248,70,50);
+  x.fillStyle = "#c2476a"; x.beginPath(); x.moveTo(100,250); x.lineTo(145,214); x.lineTo(190,250); x.closePath(); x.fill();
+  x.fillStyle = "#ffd36e"; x.fillRect(128,262,18,18);
+  x.fillStyle = "#16112e"; x.fillRect(158,270,14,28);
+  x.fillStyle = "#16112e"; x.fillRect(262,262,8,40);
+  x.fillStyle = "#245a52"; x.beginPath(); x.arc(266,252,26,0,Math.PI*2); x.fill();
+  x.fillStyle = "#2f7a6c"; x.beginPath(); x.arc(256,244,14,0,Math.PI*2); x.fill();
+  return c;
+}
+
+/* ---------- views ---------- */
+function setView(v){ S.view = v; render(); }
+
+/* ---------- settings UI ---------- */
+function buildChips(){
+  var box = $("chips"); box.innerHTML = "";
+  [5,10,25,50,100].forEach(function(n){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = n; b.dataset.n = n;
+    b.addEventListener("click", function(){ setCount(n); });
+    box.appendChild(b);
+  });
+}
+function setCount(n){
+  S.target = n; $("count").value = n; $("countOut").textContent = n;
+  Array.prototype.forEach.call($("chips").children, function(b){ b.setAttribute("aria-pressed", String(+b.dataset.n === n)); });
+  updateEstimate();
+}
+function updateEstimate(){
+  var el = $("estimate");
+  if(S.pace === "instant"){ el.textContent = "Done in a few seconds."; return; }
+  var sec = Math.ceil(S.target * 0.25);
+  el.textContent = sec < 90 ? "Takes about " + sec + " seconds." : "Takes about " + Math.round(sec/60) + " minutes.";
+}
+
+/* ---------- rebuilding a copy ---------- */
+function clamp255(v){ return v < 0 ? 0 : v > 255 ? 255 : v; }
+async function regenerate(prev){
+  var k = S.drift, w = S.w, h = S.h;
+  var img = await loadImg(prev.url);
+  var c = document.createElement("canvas"); c.width = w; c.height = h;
+  var x = c.getContext("2d", { willReadFrequently:true });
+  x.imageSmoothingQuality = "high";
+
+  // 1. redraw, nudged a touch off-center and slightly zoomed
+  x.drawImage(img, 0, 0, w, h);
+  var ang = (Math.random() - .5) * 0.014 * k, sc = 1 + (0.004 + Math.random() * 0.006) * k;
+  x.save();
+  x.translate(w/2 + (Math.random() - .5) * 2 * k, h/2 + (Math.random() - .5) * 2 * k);
+  x.rotate(ang); x.scale(sc, sc);
+  x.drawImage(img, -w/2, -h/2, w, h);
+  x.restore();
+
+  // 2. lose some fine detail
+  var f = k > 1.5 ? 0.68 : 0.88;
+  var t = document.createElement("canvas"); t.width = Math.round(w*f); t.height = Math.round(h*f);
+  var tx = t.getContext("2d"); tx.imageSmoothingQuality = "high"; tx.drawImage(c, 0, 0, t.width, t.height);
+  x.drawImage(t, 0, 0, w, h);
+
+  // 3. smudge a few patches, as if the copier misread them
+  var smudges = Math.round(1 + k * 2);
+  for(var i = 0; i < smudges; i++){
+    var rw = 20 + Math.floor(Math.random() * 60), rh = 20 + Math.floor(Math.random() * 60);
+    var sx = Math.floor(Math.random() * (w - rw)), sy = Math.floor(Math.random() * (h - rh));
+    x.globalAlpha = 0.5;
+    x.drawImage(c, sx, sy, rw, rh, sx + (Math.random() - .5) * 14 * k, sy + (Math.random() - .5) * 14 * k, rw, rh);
+    x.globalAlpha = 1;
+  }
+
+  // 4. shift color, add grain, flatten tones
+  var d = x.getImageData(0, 0, w, h), p = d.data;
+  for(var m = 0; m < 3; m++){
+    S.tint[m] = Math.max(-16, Math.min(16, S.tint[m] + (Math.random() - .5) * 1.4 * k));
+  }
+  var con = 1 + 0.008 * k, sat = 1 + 0.012 * k, noise = 2.5 * k, step = 2 + k * 1.5;
+  var tr = S.tint[0], tg = S.tint[1], tb = S.tint[2];
+  for(var j = 0; j < p.length; j += 4){
+    var r = p[j], g = p[j+1], b = p[j+2];
+    var l = 0.299 * r + 0.587 * g + 0.114 * b;
+    r = l + (r - l) * sat; g = l + (g - l) * sat; b = l + (b - l) * sat;
+    r = (r - 128) * con + 128 + tr + (Math.random() - .5) * noise;
+    g = (g - 128) * con + 128 + tg + (Math.random() - .5) * noise;
+    b = (b - 128) * con + 128 + tb + (Math.random() - .5) * noise;
+    p[j]   = clamp255(Math.round(r / step) * step);
+    p[j+1] = clamp255(Math.round(g / step) * step);
+    p[j+2] = clamp255(Math.round(b / step) * step);
+  }
+  x.putImageData(d, 0, 0);
+
+  var blob = await toBlob(c);
+  if(!blob) throw new Error("encode failed");
+  return { blob:blob, url:c.toDataURL("image/jpeg", 0.85) };
+}
+
+/* ---------- the run ---------- */
+function stopRun(){
+  S.runId++; S.stopReq = true;
+  stopPlay(); S.running = false; S.busyGen = null;
+}
+function startOver(){
+  stopRun();
+  S.gens = S.gens.slice(0,1); S.sel = 0; S.follow = true; S.paused = null; S.sheetFor = 0; S.tint = [0,0,0];
+  setView("config");
+}
+function begin(){
+  if(S.running) return;
+  S.follow = true; S.sheetFor = 0; S.tint = [0,0,0];
+  setView("run");
+  run();
+}
+function extend(by){
+  S.target = Math.min(S.target + by, 200); S.follow = true; S.sheetFor = 0;
+  run();
+}
+async function run(){
+  var token = ++S.runId;
+  S.running = true; S.paused = null; S.stopReq = false;
+  while(S.gens.length - 1 < S.target){
+    var n = S.gens.length;
+    S.busyGen = n;
+    if(S.follow) S.sel = n - 1;
+    render();
+    try{
+      var out = await regenerate(S.gens[n-1]);
+      if(token !== S.runId) return;
+      S.gens.push(out);
+      if(S.follow) S.sel = S.gens.length - 1;
+    }catch(e){
+      if(token !== S.runId) return;
+      S.running = false; S.busyGen = null;
+      S.paused = { kind:"error", msg:"Something went wrong building copy " + n + ". Resume to try again." };
+      render(); return;
+    }
+    if(S.stopReq){
+      S.running = false; S.busyGen = null; S.paused = { kind:"stopped" };
+      render(); return;
+    }
+    await sleep(S.pace === "watch" ? 160 : 0);
+    if(token !== S.runId) return;
+  }
+  S.running = false; S.busyGen = null; S.paused = { kind:"done" };
+  render();
+}
+function stopClick(){ S.stopReq = true; $("status").textContent = "Stopping…"; }
+
+/* ---------- playback ---------- */
+function stopPlay(){ if(S.playTimer){ clearInterval(S.playTimer); S.playTimer = null; } var b = $("playBtn"); if(b) b.textContent = "Play"; }
+function togglePlay(){
+  if(S.playTimer){ stopPlay(); return; }
+  if(S.gens.length < 2) return;
+  S.follow = false;
+  if(S.sel >= S.gens.length - 1) S.sel = 0;
+  $("playBtn").textContent = "Pause";
+  render();
+  S.playTimer = setInterval(function(){
+    if(S.sel >= S.gens.length - 1){ stopPlay(); return; }
+    S.sel++; render();
+  }, 200);
+}
+
+/* ---------- rendering ---------- */
+function render(){
+  $("viewDrop").hidden = S.view !== "drop";
+  $("viewConfig").hidden = S.view !== "config";
+  $("viewRun").hidden = S.view !== "run";
+  if(S.view === "config" && S.gens[0]) $("cfgImg").src = S.gens[0].url;
+  if(S.view !== "run") return;
+
+  var last = S.gens.length - 1, g = S.gens[S.sel] || S.gens[0];
+  var ar = S.w + " / " + S.h, wCss = "min(100%, calc(62vh * " + (S.w / S.h) + "))";
+  [$("frameA"), $("frameB")].forEach(function(f){ f.style.aspectRatio = ar; f.style.width = wCss; });
+  if($("imgOrig").getAttribute("src") !== S.gens[0].url) $("imgOrig").src = S.gens[0].url;
+  $("imgCur").src = g.url;
+  $("capCur").textContent = S.sel === 0 ? "Original, copy 0" : "Copy " + S.sel;
+  $("saveRow").hidden = !(S.api.downloads && S.sel > 0);
+
+  $("busy").hidden = !(S.running && S.sel === last);
+  $("busyText").textContent = S.busyGen ? "Building copy " + S.busyGen + "…" : "";
+
+  var st = $("status"); st.className = "status";
+  if(S.running){
+    st.textContent = "Copy " + S.busyGen + " of " + S.target + ".";
+  }else if(S.paused && S.paused.kind === "error"){
+    st.className = "status err"; st.textContent = S.paused.msg;
+  }else if(S.paused && S.paused.kind === "stopped"){
+    st.textContent = "Stopped after copy " + last + " of " + S.target + ".";
+  }else if(S.paused && S.paused.kind === "done"){
+    st.textContent = "Finished. " + last + " copies later, this is what's left.";
+  }else{ st.textContent = ""; }
+  $("barFill").style.width = (last / S.target * 100) + "%";
+
+  var ctl = $("controls"); ctl.innerHTML = "";
+  function btn(label, cls, fn){ var b = document.createElement("button"); b.type = "button"; b.className = "btn " + cls; b.textContent = label; b.addEventListener("click", fn); ctl.appendChild(b); }
+  if(S.running){ btn("Stop", "", stopClick); }
+  else if(S.paused && S.paused.kind === "done"){ btn("Make 10 more copies", "primary", function(){ extend(10); }); btn("Start over", "", startOver); }
+  else { btn("Resume", "primary", function(){ S.follow = true; run(); }); btn("Start over", "", startOver); }
+
+  $("scrub").hidden = last < 1;
+  var sc = $("scrubber"); sc.max = last; sc.value = S.sel;
+  $("where").textContent = S.sel + " / " + last;
+
+  renderSheet();
+}
+function renderSheet(){
+  var total = S.target + 1, sheet = $("sheet");
+  if(S.sheetFor !== total || sheet.children.length !== total){
+    sheet.innerHTML = "";
+    sheet.style.setProperty("--cols", Math.ceil(Math.sqrt(total)));
+    sheet.style.setProperty("--ar", S.w + " / " + S.h);
+    for(var i = 0; i < total; i++){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "cell"; b.dataset.i = i;
+      b.setAttribute("aria-label", i === 0 ? "Original" : "Copy " + i);
+      var n = document.createElement("span"); n.className = "n"; n.textContent = i; b.appendChild(n);
+      b.addEventListener("click", cellClick);
+      sheet.appendChild(b);
+    }
+    S.sheetFor = total;
+  }
+  for(var j = 0; j < total; j++){
+    var cell = sheet.children[j], gen = S.gens[j];
+    if(gen && !cell.querySelector("img")){
+      var im = document.createElement("img"); im.alt = ""; im.src = gen.url; cell.insertBefore(im, cell.firstChild);
+    }
+    cell.classList.toggle("on", !!gen);
+    cell.classList.toggle("sel", j === S.sel);
+    cell.classList.toggle("work", S.running && j === S.busyGen);
+  }
+}
+function cellClick(e){
+  var i = +e.currentTarget.dataset.i;
+  if(!S.gens[i]) return;
+  stopPlay(); S.follow = false; S.sel = i; render();
+}
+
+/* ---------- saving ---------- */
+function flash(msg){
+  var t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(flash.t); flash.t = setTimeout(function(){ t.hidden = true; }, 3200);
+}
+async function savePng(){
+  var d = S.api.downloads, g = S.gens[S.sel];
+  if(!d || !g || S.sel === 0) return;
+  try{ await d.save({ filename:"copy-" + S.sel + ".png", data:g.blob }); }
+  catch(e){ if(!e || e.code !== "declined") flash("Couldn't save that file."); }
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+  var drop = $("drop"), file = $("file");
+  drop.addEventListener("click", function(){ file.click(); });
+  drop.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); file.click(); } });
+  file.addEventListener("change", function(){ if(file.files[0]) handleFile(file.files[0]); file.value = ""; });
+  ["dragenter","dragover"].forEach(function(t){ drop.addEventListener(t, function(e){ e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave","drop"].forEach(function(t){ drop.addEventListener(t, function(e){ e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function(e){ var f = e.dataTransfer && e.dataTransfer.files[0]; if(f) handleFile(f); });
+  window.addEventListener("dragover", function(e){ e.preventDefault(); });
+  window.addEventListener("drop", function(e){ e.preventDefault(); });
+  document.addEventListener("paste", function(e){
+    if(S.view === "run" && S.running) return;
+    var items = (e.clipboardData && e.clipboardData.files) || [];
+    if(items[0] && /^image\//.test(items[0].type)) handleFile(items[0]);
+  });
+  $("sampleBtn").addEventListener("click", function(){ var c = drawSample(); ingest(c, c.width, c.height); });
+  $("changeBtn").addEventListener("click", function(){ stopRun(); setView("drop"); });
+
+  $("count").addEventListener("input", function(e){ setCount(+e.target.value); });
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=drift]"), function(r){
+    r.addEventListener("change", function(){ S.drift = +r.value; });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=pace]"), function(r){
+    r.addEventListener("change", function(){ S.pace = r.value; updateEstimate(); });
+  });
+  $("startBtn").addEventListener("click", begin);
+  $("playBtn").addEventListener("click", togglePlay);
+  $("scrubber").addEventListener("input", function(e){ stopPlay(); S.follow = false; S.sel = +e.target.value; render(); });
+  $("savePng").addEventListener("click", savePng);
+}
+
+buildChips(); setCount(10); wire(); render(); init();
+})();
+</script>
+</body>
+</html>
